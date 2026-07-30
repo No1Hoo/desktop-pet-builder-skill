@@ -1,4 +1,4 @@
 interface:
-  display_name: "Desktop Pet Builder"
-  short_description: "Build calm, polished PySide6 Windows desktop pets."
-  default_prompt: "Use $desktop-pet-builder to build or improve a PySide6 Windows desktop pet from my character image."
+  display_name: "Desktop Pet Builder for Linux"
+  short_description: "Build calm, polished PySide6 Linux desktop pets."
+  default_prompt: "Use $desktop-pet-builder to build or improve a native PySide6 Linux desktop pet from my character image."

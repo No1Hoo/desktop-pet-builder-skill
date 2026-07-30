@@ -1,4 +1,4 @@
-# PySide6 desktop-pet production playbook
+# PySide6 Linux desktop-pet production playbook
 
 ## 1. Scope and identity
 
@@ -10,7 +10,7 @@ For image generation, use the installed image-generation skill, attach the origi
 
 1. Detect installed Python versions and existing project virtual environment.
 2. Use a project-local virtual environment. Install `PySide6`, `Pillow`, and `PyInstaller` only when absent and within user authorization.
-3. Use UTF-8 source files and PowerShell 7 on Windows. Before PowerShell diagnostics, explicitly set console input/output encoding and `chcp 65001`.
+3. Use UTF-8 source files and Bash on Linux. Detect X11 versus Wayland before choosing input or window-integration techniques.
 4. Create separate directories for `assets/`, `assets/frames/`, `qa/`, `build/`, `dist/`, and final `output/` releases.
 5. Do not use Tkinter. Use `QApplication`, `QWidget`, `QPainter`, `QTimer`, `QMenu`, and `QInputDialog` as needed.
 
@@ -43,7 +43,7 @@ On left press, store global mouse position and original window position. On move
 
 ### Click and menu
 
-If the release is not a drag, cycle a short, predictable set of interactions. Keep jump height, squash and shake within the comfort limits. The context menu must make every active mode reversible. `跟随鼠标` becomes a checkable `停止跟随鼠标（Esc）` item when active; `Esc` is polled globally on Windows and the next left click also stops follow.
+If the release is not a drag, cycle a short, predictable set of interactions. Keep jump height, squash and shake within the comfort limits. The context menu must make every active mode reversible. `跟随鼠标` becomes a checkable stop item when active. On Linux, the next left click and the menu item must stop follow. Focused `Esc` remains available; global `Esc` is optional and must not rely on unsafe display-server polling.
 
 ### Chat and bubbles
 
@@ -59,23 +59,23 @@ Use `scripts/check_animation_frames.py` for a first consistency pass. Then inspe
 
 Read `animation-comfort.md` before tuning timing. The baseline design is discrete frames, stable foot registration, low-amplitude one-shot feedback, no opacity morphing, and no always-on decorative particles. When a user has explicitly requested “more natural movement”, add coherent source frames before adding procedural movement. When a user reports discomfort, remove complexity first.
 
-## 8. Build and delivery
+## 8. Linux setup and delivery
 
-1. Compile: `python -m py_compile main.py`.
-2. Run an offscreen smoke test that creates the widget, loads each required sprite family, and confirms frame selection returns one discrete frame rather than a blended pair.
-3. Build with `pyinstaller --noconfirm --clean desktop_pet.spec`; ensure `.spec` includes `assets/frames` and every fallback asset.
-4. Copy `dist` output to a new user-facing versioned name in the release folder. Do not copy over a running target.
-5. Start the packaged EXE briefly, verify the exact process path, then close only that test process. Confirm no child process remains.
-6. Compute SHA-256. Create a desktop shortcut only if requested; check its target and never silently repoint an existing shortcut.
+1. Create `.venv/` with the system `python3`, then install the existing `requirements.txt` inside it. Keep `.venv/` untracked.
+2. Compile with `.venv/bin/python -m py_compile main.py`.
+3. Run an offscreen smoke test that creates the widget, loads each required sprite family, and confirms frame selection returns one discrete frame rather than a blended pair.
+4. Run `scripts/check_animation_frames.py <frames-dir>` and resolve every failure.
+5. Launch through the repository-local Bash script in the real desktop session. Verify the exact process path and confirm the transparent character window visually.
+6. If requested, create a `.desktop` entry with absolute `Exec` and `Icon` paths. Do not modify the Windows `.spec`, overwrite a Windows EXE, or add a second copy of the shared character assets.
 
 ## 9. Regression checklist
 
 - Character image loads with transparent background; no white/magenta fringe.
 - Window is transparent, borderless, movable, scalable, and topmost state toggles correctly.
 - Menu commands invoke chat, pat, feed, walking, sleep, follow, return, resize, topmost and exit.
-- Follow stops with `Esc`, left click, and menu command.
+- Follow stops with left click and menu command; focused `Esc` also works.
 - Each action returns to idle after its planned duration; sleep/walk remain toggled until stopped.
 - Bubble stays outside the character silhouette and disappears on time.
 - Frame holds are fixed; no alpha cross-fade, face ghosting, or simultaneous scale/rotate/bob during a frame loop.
-- EXE launches without a Python console or missing resource error.
+- The Bash or `.desktop` launcher starts without a terminal window or missing-resource error.
 - Only the intended test process was closed; older releases remain intact.
